@@ -6,6 +6,9 @@ load_dotenv()
 
 class Config:
     SWAPI_BASE_URL = os.getenv("SWAPI_BASE_URL")
+    SWAPI_TIMEOUT: int = 10
+    SWAPI_MAX_RETRIES: int = 3
+
     JWT_SECRET = os.getenv("JWT_SECRET", "sua-chave-super-secret")
 
     CACHE_TTL = 300
