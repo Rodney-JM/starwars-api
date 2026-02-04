@@ -15,3 +15,5 @@ class Config:
 
     JWT_EXPIRATION = 86400
     API_KEY = os.getenv("API_KEY")
+
+    DEFAULT_LIMIT: int = 10

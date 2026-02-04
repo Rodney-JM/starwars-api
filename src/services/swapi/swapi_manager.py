@@ -1,7 +1,5 @@
 from config import Config
 from typing import Optional, Dict, Any, List
-import sys
-import os
 import time
 import logging
 import requests
