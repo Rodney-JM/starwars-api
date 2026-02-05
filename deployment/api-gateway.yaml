@@ -1,0 +1,444 @@
+# =====================================================
+# deployment/api-gateway.yaml
+# Configuração do API Gateway no GCP (OpenAPI 3.0)
+#
+# COMO USAR:
+#   1. Substitua <CLOUD_FUNCTION_URL> pela URL real da sua Cloud Function
+#   2. No console GCP → API Gateway → Create API
+#   3. Upload este arquivo como a configuração
+swagger: "2.0"
+info:
+  title: "Star Wars API"
+  description: "API para explorar dados da saga Star Wars"
+  version: "1.0.0"
+  contact:
+    name: "PowerOfData"
+
+host: "starwars-api.example.com"
+basePath: "/v1"
+schemes:
+  - https
+
+# --- Segurança global ---
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: X-API-Key
+    in: header
+  bearer_auth:
+    type: apiKey
+    name: Authorization
+    in: header
+
+# --- Backend padrão (todas as rotas vão para a Cloud Function) ---
+x-google-backend:
+  address: "https://<CLOUD_FUNCTION_URL>"
+
+paths:
+  # =============================================
+  # HEALTH CHECK (público)
+  # =============================================
+  /health:
+    get:
+      summary: "Verifica status da API"
+      operationId: "healthCheck"
+      responses:
+        "200":
+          description: "API online"
+
+  # =============================================
+  # AUTENTICAÇÃO
+  # =============================================
+  /auth/login:
+    post:
+      summary: "Login e obter token JWT"
+      operationId: "login"
+      parameters:
+        - in: body
+          name: credentials
+          required: true
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      responses:
+        "200":
+          description: "Token gerado"
+        "401":
+          description: "Credenciais inválidas"
+
+  /auth/refresh:
+    post:
+      summary: "Renovar token JWT"
+      operationId: "refreshToken"
+      security:
+        - bearer_auth: []
+      responses:
+        "200":
+          description: "Token renovado"
+
+  # =============================================
+  # PERSONAGENS
+  # =============================================
+  /characters:
+    get:
+      summary: "Lista personagens com filtros"
+      operationId: "getCharacters"
+      security:
+        - api_key: []
+        - bearer_auth: []
+      parameters:
+        - name: search
+          in: query
+          type: string
+        - name: name
+          in: query
+          type: string
+        - name: gender
+          in: query
+          type: string
+        - name: sort_by
+          in: query
+          type: string
+        - name: order
+          in: query
+          type: string
+          enum: [asc, desc]
+        - name: page
+          in: query
+          type: integer
+        - name: limit
+          in: query
+          type: integer
+      responses:
+        "200":
+          description: "Lista de personagens"
+
+  /characters/{id}:
+    get:
+      summary: "Busca personagem pelo ID"
+      operationId: "getCharacterById"
+      security:
+        - api_key: []
+        - bearer_auth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Dados do personagem"
+        "404":
+          description: "Personagem não encontrado"
+
+  /characters/{id}/films:
+    get:
+      summary: "Filmes de um personagem"
+      operationId: "getCharacterFilms"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de filmes"
+
+  /characters/{id}/starships:
+    get:
+      summary: "Naves de um personagem"
+      operationId: "getCharacterStarships"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de naves"
+
+  /characters/{id}/homeworld:
+    get:
+      summary: "Planeta natal de um personagem"
+      operationId: "getCharacterHomeworld"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Dados do planeta"
+
+  # =============================================
+  # PLANETAS
+  # =============================================
+  /planets:
+    get:
+      summary: "Lista planetas com filtros"
+      operationId: "getPlanets"
+      security:
+        - api_key: []
+      parameters:
+        - name: search
+          in: query
+          type: string
+        - name: climate
+          in: query
+          type: string
+        - name: terrain
+          in: query
+          type: string
+        - name: sort_by
+          in: query
+          type: string
+        - name: order
+          in: query
+          type: string
+      responses:
+        "200":
+          description: "Lista de planetas"
+
+  /planets/{id}:
+    get:
+      summary: "Busca planeta pelo ID"
+      operationId: "getPlanetById"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Dados do planeta"
+
+  /planets/{id}/residents:
+    get:
+      summary: "Habitantes de um planeta"
+      operationId: "getPlanetResidents"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de habitantes"
+
+  /planets/{id}/films:
+    get:
+      summary: "Filmes de um planeta"
+      operationId: "getPlanetFilms"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de filmes"
+
+  # =============================================
+  # NAVES
+  # =============================================
+  /starships:
+    get:
+      summary: "Lista naves com filtros"
+      operationId: "getStarships"
+      security:
+        - api_key: []
+      parameters:
+        - name: search
+          in: query
+          type: string
+        - name: name
+          in: query
+          type: string
+        - name: manufacturer
+          in: query
+          type: string
+        - name: sort_by
+          in: query
+          type: string
+        - name: order
+          in: query
+          type: string
+      responses:
+        "200":
+          description: "Lista de naves"
+
+  /starships/{id}:
+    get:
+      summary: "Busca nave pelo ID"
+      operationId: "getStarshipById"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Dados da nave"
+
+  /starships/{id}/pilots:
+    get:
+      summary: "Pilotos de uma nave"
+      operationId: "getStarshipPilots"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de pilotos"
+
+  /starships/{id}/films:
+    get:
+      summary: "Filmes de uma nave"
+      operationId: "getStarshipFilms"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de filmes"
+
+  # =============================================
+  # FILMES
+  # =============================================
+  /films:
+    get:
+      summary: "Lista filmes com filtros"
+      operationId: "getFilms"
+      security:
+        - api_key: []
+      parameters:
+        - name: search
+          in: query
+          type: string
+        - name: title
+          in: query
+          type: string
+        - name: director
+          in: query
+          type: string
+        - name: episode_id
+          in: query
+          type: integer
+        - name: sort_by
+          in: query
+          type: string
+        - name: order
+          in: query
+          type: string
+      responses:
+        "200":
+          description: "Lista de filmes"
+
+  /films/{id}:
+    get:
+      summary: "Busca filme pelo ID"
+      operationId: "getFilmById"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Dados do filme"
+
+  /films/{id}/characters:
+    get:
+      summary: "Personagens de um filme"
+      operationId: "getFilmCharacters"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de personagens"
+
+  /films/{id}/planets:
+    get:
+      summary: "Planetas de um filme"
+      operationId: "getFilmPlanets"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de planetas"
+
+  /films/{id}/starships:
+    get:
+      summary: "Naves de um filme"
+      operationId: "getFilmStarships"
+      security:
+        - api_key: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: "Lista de naves"
+
+  # =============================================
+  # BUSCA GLOBAL
+  # =============================================
+  /search:
+    get:
+      summary: "Busca global em todos os recursos"
+      operationId: "globalSearch"
+      security:
+        - api_key: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          type: string
+        - name: type
+          in: query
+          type: string
+          enum: [all, characters, planets, starships, films]
+          default: all
+      responses:
+        "200":
+          description: "Resultados da busca"
