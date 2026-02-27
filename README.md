@@ -1,4 +1,4 @@
-# 🌟 Star Wars API — PowerOfData
+# 🌟 Star Wars API 
 
 Uma API RESTful que permite explorar dados da saga Star Wars de forma rica e interativa. Construída com Python e hospedada no Google Cloud Functions.
 
@@ -384,4 +384,3 @@ Com mais tempo, implementaria:
 11. **Adição de testes** - realizar a criação de testes para os services e demais funções com pytest
 ---
 
-*Desenvolvido como parte do processo seletivo da PowerOfData — Desenvolvedor Back End Python*
